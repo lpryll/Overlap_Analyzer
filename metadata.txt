@@ -1,0 +1,23 @@
+[general]
+name=Overlap Analyzer
+qgisMinimumVersion=3.0
+qgisMaximumVersion=4.99
+description=Analyzes the spatial overlap between selected layers and a reference layer, optionally including a buffer zone. Lists intersecting features with their attribute table.
+version=2.0.1
+author=LPRYLL
+email=alperyolal@gmail.com
+about=Overlap Analyzer analyzes the spatial intersections between the selected layers and a reference layer, and presents the results in a table. Compatible with Qt5 and Qt6.
+
+repository=https://github.com/lpryll/Overlap_Analyzer
+tracker=https://github.com/lpryll/Overlap_Analyzer/issues
+homepage=https://github.com/lpryll/Overlap_Analyzer
+
+tags=spatial analysis,intersection,overlap,layer,qgis
+category=Analysis
+icon=icon.png
+experimental=False
+deprecated=False
+hasProcessingProvider=no
+
+changelog=
+  2.0.1 - Qt6 and quality issues fixed.
