@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def classFactory(iface):
-    from .overlap_analyzer import OverlapAnalyzer
-    return OverlapAnalyzer(iface)
+    from .plugin import OverlapAnalyzerPlugin
+    return OverlapAnalyzerPlugin(iface)
