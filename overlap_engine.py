@@ -14,6 +14,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import pyqtSignal
 
+from .compat import enum_value, polygon_geometry_type
 from .i18n import tr
 
 
@@ -23,7 +24,7 @@ class OverlapAnalysisTask(QgsTask):
     def __init__(self, base_layer: QgsVectorLayer, overlay_layers: list,
                  base_id_field: str, min_sliver_area: float = 0.01,
                  only_selected: bool = False):
-        super().__init__(tr("task_desc"), QgsTask.CanCancel)
+        super().__init__(tr("task_desc"), enum_value(QgsTask, "Flag", "CanCancel"))
         self.base_layer = base_layer
         self.overlay_layers = overlay_layers
         self.base_id_field = base_id_field
@@ -131,7 +132,7 @@ class OverlapAnalysisTask(QgsTask):
                             if not inter_geom or inter_geom.isEmpty():
                                 continue
 
-                            inter_geom = inter_geom.convertToType(QgsWkbTypes.PolygonGeometry, True)
+                            inter_geom = inter_geom.convertToType(polygon_geometry_type(), True)
                             if not inter_geom or inter_geom.isEmpty():
                                 continue
 
@@ -203,12 +204,12 @@ class OverlapAnalysisTask(QgsTask):
         if result:
             QgsMessageLog.logMessage(
                 tr("log_done", n=len(self.results)),
-                "OverlapAnalyzer", Qgis.Info
+                "OverlapAnalyzer", enum_value(Qgis, "MessageLevel", "Info")
             )
             self.analysisFinished.emit(self.results, self.net_summaries, self.summary)
         else:
             if self.exception:
                 QgsMessageLog.logMessage(
                     tr("log_error", e=str(self.exception)),
-                    "OverlapAnalyzer", Qgis.Critical
+                    "OverlapAnalyzer", enum_value(Qgis, "MessageLevel", "Critical")
                 )

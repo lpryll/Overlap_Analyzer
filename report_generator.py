@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from .compat import enum_value
 from .i18n import tr
 import datetime
 import html
@@ -74,10 +75,7 @@ class OverlapReportGenerator:
         img: QImage = job.renderedImage()
 
         buffer = QBuffer()
-        try:
-            open_mode = QIODevice.OpenModeFlag.WriteOnly
-        except AttributeError:
-            open_mode = QIODevice.WriteOnly
+        open_mode = enum_value(QIODevice, "OpenModeFlag", "WriteOnly")
 
         buffer.open(open_mode)
         img.save(buffer, "PNG")
@@ -229,16 +227,10 @@ class OverlapReportGenerator:
     @staticmethod
     def _print_html(filepath: str, html_content: str):
         """HTML'i A4 dikey PDF olarak yazar (uzun tablolar otomatik sayfalanır)."""
-        try:
-            printer_mode = QPrinter.PrinterMode.HighResolution
-            pdf_format = QPrinter.OutputFormat.PdfFormat
-            a4_size = QPageSize.PageSizeId.A4
-            portrait = QPageLayout.Orientation.Portrait
-        except AttributeError:
-            printer_mode = QPrinter.HighResolution
-            pdf_format = QPrinter.PdfFormat
-            a4_size = QPageSize.A4
-            portrait = QPageLayout.Portrait
+        printer_mode = enum_value(QPrinter, "PrinterMode", "HighResolution")
+        pdf_format = enum_value(QPrinter, "OutputFormat", "PdfFormat")
+        a4_size = enum_value(QPageSize, "PageSizeId", "A4")
+        portrait = enum_value(QPageLayout, "Orientation", "Portrait")
 
         printer = QPrinter(printer_mode)
         printer.setOutputFormat(pdf_format)

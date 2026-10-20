@@ -23,31 +23,23 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog, QMessageBox, QComboBox, QLineEdit, QApplication
 )
 
+from .compat import enum_value, log_message, polygon_geometry_type
 from .i18n import tr
 from .overlap_engine import OverlapAnalysisTask
 from .output_builder import create_overlap_memory_layer, export_results_to_csv
 from .report_generator import OverlapReportGenerator
 
-try:
-    SELECT_ROWS = QAbstractItemView.SelectionBehavior.SelectRows
-    SINGLE_SELECTION = QAbstractItemView.SelectionMode.SingleSelection
-    NO_EDIT_TRIGGERS = QAbstractItemView.EditTrigger.NoEditTriggers
-    RESIZE_STRETCH = QHeaderView.ResizeMode.Stretch
-    RESIZE_CONTENT = QHeaderView.ResizeMode.ResizeToContents
-    USER_CHECKABLE = Qt.ItemFlag.ItemIsUserCheckable
-    CHECKED = Qt.CheckState.Checked
-    UNCHECKED = Qt.CheckState.Unchecked
-    ALIGN_RIGHT = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
-except AttributeError:
-    SELECT_ROWS = QAbstractItemView.SelectRows
-    SINGLE_SELECTION = QAbstractItemView.SingleSelection
-    NO_EDIT_TRIGGERS = QAbstractItemView.NoEditTriggers
-    RESIZE_STRETCH = QHeaderView.Stretch
-    RESIZE_CONTENT = QHeaderView.ResizeToContents
-    USER_CHECKABLE = Qt.ItemIsUserCheckable
-    CHECKED = Qt.Checked
-    UNCHECKED = Qt.Unchecked
-    ALIGN_RIGHT = Qt.AlignRight | Qt.AlignVCenter
+SELECT_ROWS = enum_value(QAbstractItemView, "SelectionBehavior", "SelectRows")
+SINGLE_SELECTION = enum_value(QAbstractItemView, "SelectionMode", "SingleSelection")
+NO_EDIT_TRIGGERS = enum_value(QAbstractItemView, "EditTrigger", "NoEditTriggers")
+RESIZE_STRETCH = enum_value(QHeaderView, "ResizeMode", "Stretch")
+RESIZE_CONTENT = enum_value(QHeaderView, "ResizeMode", "ResizeToContents")
+USER_CHECKABLE = enum_value(Qt, "ItemFlag", "ItemIsUserCheckable")
+CHECKED = enum_value(Qt, "CheckState", "Checked")
+UNCHECKED = enum_value(Qt, "CheckState", "Unchecked")
+ALIGN_RIGHT = enum_value(Qt, "AlignmentFlag", "AlignRight") | enum_value(Qt, "AlignmentFlag", "AlignVCenter")
+USER_ROLE = enum_value(Qt, "ItemDataRole", "UserRole")
+WAIT_CURSOR = enum_value(Qt, "CursorShape", "WaitCursor")
 
 
 class NumericTableWidgetItem(QTableWidgetItem):
@@ -86,10 +78,7 @@ class OverlapAnalyzerDialog(QDialog):
 
         base_layout.addWidget(QLabel(tr("lbl_base_layer")), 0, 0)
         self.cmb_base_layer = QgsMapLayerComboBox()
-        try:
-            poly_filter = QgsMapLayerProxyModel.Filter.PolygonLayer
-        except AttributeError:
-            poly_filter = QgsMapLayerProxyModel.PolygonLayer
+        poly_filter = enum_value(QgsMapLayerProxyModel, "Filter", "PolygonLayer")
         self.cmb_base_layer.setFilters(poly_filter)
         base_layout.addWidget(self.cmb_base_layer, 0, 1)
 
@@ -261,12 +250,12 @@ class OverlapAnalyzerDialog(QDialog):
     def populate_overlay_layers(self):
         self.tbl_overlays.setRowCount(0)
         base_layer = self.cmb_base_layer.currentLayer()
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
 
         for layer in QgsProject.instance().mapLayers().values():
             if not isinstance(layer, QgsVectorLayer):
                 continue
-            if layer.geometryType() != QgsWkbTypes.PolygonGeometry:
+            if layer.geometryType() != polygon_geometry_type():
                 continue
             if base_layer and layer.id() == base_layer.id():
                 continue
@@ -275,7 +264,7 @@ class OverlapAnalyzerDialog(QDialog):
             self.tbl_overlays.insertRow(row)
 
             chk_item = QTableWidgetItem()
-            chk_item.setFlags(chk_item.flags() | (Qt.ItemFlag.ItemIsUserCheckable if hasattr(Qt, 'ItemFlag') else Qt.ItemIsUserCheckable))
+            chk_item.setFlags(chk_item.flags() | USER_CHECKABLE)
             chk_item.setCheckState(CHECKED)
             chk_item.setData(user_role, layer.id())
             self.tbl_overlays.setItem(row, 0, chk_item)
@@ -302,7 +291,7 @@ class OverlapAnalyzerDialog(QDialog):
             return
 
         selected_overlays = []
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
 
         for row in range(self.tbl_overlays.rowCount()):
             chk_item = self.tbl_overlays.item(row, 0)
@@ -324,8 +313,8 @@ class OverlapAnalyzerDialog(QDialog):
             try:
                 base_layer.selectionChanged.connect(self.update_pdf_scope_label)
                 self._sel_connected.add(base_layer.id())
-            except Exception:
-                pass
+            except (TypeError, RuntimeError) as exc:
+                log_message(f"selectionChanged could not be connected: {exc}", "Warning")
 
         self.btn_run.setEnabled(False)
         self.btn_cancel.setEnabled(True)
@@ -379,7 +368,7 @@ class OverlapAnalyzerDialog(QDialog):
         self._syncing = True
         self.tbl_results.setSortingEnabled(False)
         self.tbl_results.setRowCount(len(results))
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
 
         for row_idx, r in enumerate(results):
             id_item = QTableWidgetItem(str(r["base_id"]))
@@ -420,7 +409,7 @@ class OverlapAnalyzerDialog(QDialog):
         self._syncing = True
         self.tbl_net.setSortingEnabled(False)
         self.tbl_net.setRowCount(len(net_results))
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
 
         for row_idx, r in enumerate(net_results):
             id_item = QTableWidgetItem(str(r["base_id"]))
@@ -485,13 +474,13 @@ class OverlapAnalyzerDialog(QDialog):
         )
 
     def on_detail_row_clicked(self, row: int, col: int):
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
         item = self.tbl_results.item(row, 0)
         if item:
             self.zoom_and_flash_wkt(item.data(user_role))
 
     def on_net_row_clicked(self, row: int, col: int):
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
         item = self.tbl_net.item(row, 0)
         if item:
             self.zoom_and_flash_wkt(item.data(user_role))
@@ -595,7 +584,7 @@ class OverlapAnalyzerDialog(QDialog):
 
     @property
     def _fid_role(self):
-        user_role = Qt.ItemDataRole.UserRole if hasattr(Qt, 'ItemDataRole') else Qt.UserRole
+        user_role = USER_ROLE
         return int(user_role) + 1
 
     def _selected_target_fids(self):
@@ -641,7 +630,7 @@ class OverlapAnalyzerDialog(QDialog):
         if src_layer is not None:
             try:
                 map_fids = {int(f.id()) for f in src_layer.selectedFeatures()} & self._known_target_fids()
-            except Exception:
+            except (RuntimeError, TypeError, ValueError):
                 map_fids = set()
             if map_fids:
                 return map_fids
@@ -776,8 +765,7 @@ class OverlapAnalyzerDialog(QDialog):
             return
 
         src_layer = QgsProject.instance().mapLayer(self.last_base_layer_id) or base_layer
-        wait_cursor = Qt.CursorShape.WaitCursor if hasattr(Qt, 'CursorShape') else Qt.WaitCursor
-        QApplication.setOverrideCursor(wait_cursor)
+        QApplication.setOverrideCursor(WAIT_CURSOR)
         try:
             page_groups = self._write_pdf(filepath, base_layer, src_layer, target_fids)
         except Exception as e:

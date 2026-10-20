@@ -6,20 +6,25 @@ supportsQt6=True
 description=Multi-layer polygon overlap and net residual area analyzer (TR/EN).
 about=Overlap Analyzer calculates detailed polygon intersections across multiple constraint layers using background multithreading (QgsTask).
 version=2.1.0
-author=Alper Yolal (LPRYLL)
+author=LPRYLL
 email=alperyolal@gmail.com
+
+repository=https://github.com/lpryll/Overlap_Analyzer
+tracker=https://github.com/lpryll/Overlap_Analyzer/issues
+homepage=https://github.com/lpryll/Overlap_Analyzer
+
 tags=vector, overlap, intersection, topology, area, cadastre, mining, environment, spatial analysis, qt6
 category=Vector
 icon=icon.svg
 experimental=False
 deprecated=False
 hasProcessingProvider=False
-changelog=2.1.0
-    - Interface and reports follow the Windows language (Turkish on Turkish Windows, English otherwise)
-    - Target ID and Overlay ID filters for the results lists
-    - Tick boxes for multi-object selection in the results lists
-    - PDF info card can be generated for the selected, ticked or filtered objects only, with the map zoomed to them
-    - Multiple objects produce a single multi-page PDF (one page, map and info card per object)
-    - Overlapping areas are highlighted with a semi-transparent fill on the PDF map
-    - Wording updated to "Net Residual Area"
-    - Fixed an error when reopening the dialog
+changelog=
+  2.1.0 - Interface and reports follow the Windows language (Turkish on Turkish Windows, English otherwise),
+	- Target ID and Overlay ID filters for the results lists,
+	- Tick boxes for multi-object selection in the results lists,
+	- PDF info card can be generated for the selected, ticked or filtered objects only, with the map zoomed to them,
+	- Multiple objects produce a single multi-page PDF (one page, map and info card per object),
+	- Overlapping areas are highlighted with a semi-transparent fill on the PDF map,
+	- Wording updated to "Net Residual Area"; Fixed an error when reopening the dialog.
+  2.0.1 - Qt6 and quality issues fixed.

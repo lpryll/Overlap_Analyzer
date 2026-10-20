@@ -10,16 +10,12 @@ from qgis.core import (
     QgsRendererRange,
     QgsFillSymbol
 )
-from qgis.PyQt.QtCore import QVariant
 
+from .compat import field_type
 from .i18n import tr, tr_list
 
-try:
-    FIELD_STRING = QVariant.Type.String
-    FIELD_DOUBLE = QVariant.Type.Double
-except AttributeError:
-    FIELD_STRING = QVariant.String
-    FIELD_DOUBLE = QVariant.Double
+FIELD_STRING = field_type("String", "QString")
+FIELD_DOUBLE = field_type("Double", "Double")
 
 
 def create_overlap_memory_layer(results: list, crs_authid: str) -> QgsVectorLayer:
